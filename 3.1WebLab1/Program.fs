@@ -38,6 +38,7 @@ let rec inputPoints pList =
     printfn "Введите данные точки"
     let nX = floatInput "X: "
     let nY = floatInput "Y: "
+    printf "Класс: "
     let nClass = Console.ReadLine()
     let point = {x = nX; y = nY; Class = nClass}
     let nPList = point :: pList
@@ -57,8 +58,29 @@ let calcMap point k pointList =
     |> List.sortBy snd
     |> List.truncate k
         
-        
-
+let countClass className wPointList =
+    wPointList
+    |> List.filter (fun (point, _) -> point.Class = className)
+    |> List.length
+    
+let getMostClass wPointList =
+    let clases = wPointList
+                |> List.map (fun (p, dist) -> (p.Class, dist))
+                |> Set.ofList
+                |> Set.map (fun (n, _) -> (n, countClass n wPointList))
+                |> Set.toList
+    
+    let maxVal = wPointList
+                |> List.maxBy (fun (p, _) -> countClass p.Class wPointList)
+                |> (fun (p, _) -> countClass p.Class wPointList)
+                
+    let answ = wPointList
+               |> List.filter (fun (p, _) -> countClass p.Class wPointList = maxVal)
+               |> List.sortByDescending (fun (p, dist) -> dist)
+               |> List.head
+               |> (fun (p, _) -> p.Class)
+    
+    answ
 
 
 [<EntryPoint>]
@@ -67,5 +89,7 @@ let main argv=
     let k = intInput "Введите кол-во точек для определения типа:"
     let uX = floatInput "X:"
     let uY = floatInput "Y:"
-    let answ = calcMap {x = 0; y = 1; Class = "non"} k PointList 
+    let answ = calcMap {x = 0; y = 1; Class = "non"} k PointList
+                |> getMostClass
+    printfn "%s" answ
     0;
