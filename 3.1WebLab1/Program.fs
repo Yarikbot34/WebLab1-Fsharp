@@ -42,15 +42,16 @@ let writeToFile pointList =
     | _ -> pointList
 
 let parcePoint (str: string[]) =
+    printfn $"{str[0]} {str[1]} {str[2]}" 
     try
-        let sX = Double.Parse string[0]
-        let sY = Double.Parse string[1]
-        let Class = string[2]
+        let sX = Double.Parse str[0]
+        let sY = Double.Parse str[1]
+        let Class = str[2]
         let point = {x = sX; y = sY; Class = Class}
         point
     with
     | ex ->
-        failwith "Ошибка при извлечении данных из файла"
+        failwith $"Ошибка при извлечении данных из файла {ex.Message}"
 
 
 let readFromFile =
@@ -61,13 +62,14 @@ let readFromFile =
         | "y" | "yes" ->
             let data =  File.ReadAllLines("savedPoints")
                         |> Array.toList
+                        |> List.filter (fun s -> not (isNull s))
                         |> List.map (fun s -> s.Split("|"))
                         |> List.map (fun sa -> parcePoint sa)
             data
         | _ ->
-            List.empty<Point>
+            list.Empty
     | false ->
-        List.empty<Point>
+        list.Empty
 
 let rec inputPoints pList =
     printfn "Введите данные точки"
@@ -77,15 +79,26 @@ let rec inputPoints pList =
     let nClass = Console.ReadLine()
     let point = {x = nX; y = nY; Class = nClass}
     let nPList = point :: pList
-    printfn "Хотите продолжить? (y/n)"
-    match Console.ReadLine().Trim() with
-    | "y" | "Y" | "yes" ->
-        inputPoints nPList
-    | _ ->
-        writeToFile nPList
-        
+    if List.length nPList > 2 then
+        printfn "Хотите продолжить? (y/n)"
+        match Console.ReadLine().Trim() with
+        | "y" | "Y" | "yes" ->
+            inputPoints nPList
+        | _ ->
+            writeToFile nPList
+    else inputPoints nPList
+
+let inputPoinstDialog pList : list<Point> =
+    if List.length pList > 2 then
+        printfn "Хотите добавить новые точки (y/n)"
+        match Console.ReadLine().Trim().ToLower() with
+        | "y" | "yes" ->
+            inputPoints pList
+        | _ ->  pList
+    else
+        inputPoints pList
 let calcDistance Point1 Point2 =
-    sqrt((Point1.x - Point2.x)**2 + (Point1.y - Point2.y))
+    sqrt((Point1.x - Point2.x)**2 + (Point1.y - Point2.y)**2)
         
 let calcMap point k pointList =
     pointList
@@ -105,9 +118,14 @@ let getMostClass wPointList =
                 
     let answ = wPointList
                |> List.filter (fun (p, _) -> countClass p.Class wPointList = maxVal)
-               |> List.sortByDescending (fun (p, dist) -> dist)
+               |> List.sortBy (fun (p, dist) -> dist)
                |> List.head
                |> (fun (p, _) -> p.Class)
+               
+    let test = wPointList
+               |> List.filter (fun (p, _) -> countClass p.Class wPointList = maxVal)
+               |> List.sortBy (fun (p, dist) -> dist)
+    printfn "%A" test
     
     answ
 
@@ -115,7 +133,7 @@ let getMostClass wPointList =
 [<EntryPoint>]
 let main argv=
     let savedPoints = readFromFile
-    let PointList = inputPoints savedPoints
+    let PointList = inputPoinstDialog savedPoints
     let k = intInput "Введите кол-во точек для определения типа:"
     let uX = floatInput "X:"
     let uY = floatInput "Y:"
