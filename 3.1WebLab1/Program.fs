@@ -121,11 +121,6 @@ let getMostClass wPointList =
                |> List.sortBy (fun (p, dist) -> dist)
                |> List.head
                |> (fun (p, _) -> p.Class)
-               
-    let test = wPointList
-               |> List.filter (fun (p, _) -> countClass p.Class wPointList = maxVal)
-               |> List.sortBy (fun (p, dist) -> dist)
-    printfn "%A" test
     
     answ
 
@@ -139,5 +134,5 @@ let main argv=
     let uY = floatInput "Y:"
     let answ = calcMap {x = uX; y = uY; Class = ""} k PointList
                 |> getMostClass
-    printfn "%s" answ
+    printfn "Предсказанный класс точки: %s" answ
     0;
