@@ -1,5 +1,6 @@
 ﻿open System
 open System.Collections.Generic
+open System.IO
 open System.Linq
 
 type Point = {
@@ -7,10 +8,6 @@ type Point = {
     y : float
     Class : string
 }
-
-let map = Set.empty<Point>
-
-let x = Convert.ToDouble(Console.ReadLine())
 
 let rec floatInput label =
     printf "%s" label 
@@ -34,6 +31,16 @@ let rec intInput label =
         printfn "Неверный вывод, принимаются только целые числа"
         intInput label
 
+let writeToFile pointList =
+    printfn "Сохранить точки в файл? (y/n)"
+    match Console.ReadLine().ToLower().Trim() with
+    | "y" ->
+        let writeData = pointList
+                        |> List.map (fun p -> $"{p.x}|{p.y}|{p.Class}")
+        File.WriteAllLines("savedPoints", writeData)
+        pointList
+    | _ -> pointList
+
 let rec inputPoints pList =
     printfn "Введите данные точки"
     let nX = floatInput "X: "
@@ -47,7 +54,7 @@ let rec inputPoints pList =
     | "y" | "Y" | "yes" ->
         inputPoints nPList
     | _ ->
-        nPList
+        writeToFile nPList
         
 let calcDistance Point1 Point2 =
     sqrt((Point1.x - Point2.x)**2 + (Point1.y - Point2.y))
@@ -89,7 +96,7 @@ let main argv=
     let k = intInput "Введите кол-во точек для определения типа:"
     let uX = floatInput "X:"
     let uY = floatInput "Y:"
-    let answ = calcMap {x = 0; y = 1; Class = "non"} k PointList
+    let answ = calcMap {x = uX; y = uY; Class = ""} k PointList
                 |> getMostClass
     printfn "%s" answ
     0;
