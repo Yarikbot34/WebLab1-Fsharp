@@ -41,6 +41,34 @@ let writeToFile pointList =
         pointList
     | _ -> pointList
 
+let parcePoint (str: string[]) =
+    try
+        let sX = Double.Parse string[0]
+        let sY = Double.Parse string[1]
+        let Class = string[2]
+        let point = {x = sX; y = sY; Class = Class}
+        point
+    with
+    | ex ->
+        failwith "Ошибка при извлечении данных из файла"
+
+
+let readFromFile =
+    match File.Exists("savedPoints") with
+    | true ->
+        printfn "Обнаружены сохраненные точки, загрузить их? (y/n)"
+        match Console.ReadLine().ToLower().Trim() with
+        | "y" | "yes" ->
+            let data =  File.ReadAllLines("savedPoints")
+                        |> Array.toList
+                        |> List.map (fun s -> s.Split("|"))
+                        |> List.map (fun sa -> parcePoint sa)
+            data
+        | _ ->
+            List.empty<Point>
+    | false ->
+        List.empty<Point>
+
 let rec inputPoints pList =
     printfn "Введите данные точки"
     let nX = floatInput "X: "
@@ -71,12 +99,6 @@ let countClass className wPointList =
     |> List.length
     
 let getMostClass wPointList =
-    let clases = wPointList
-                |> List.map (fun (p, dist) -> (p.Class, dist))
-                |> Set.ofList
-                |> Set.map (fun (n, _) -> (n, countClass n wPointList))
-                |> Set.toList
-    
     let maxVal = wPointList
                 |> List.maxBy (fun (p, _) -> countClass p.Class wPointList)
                 |> (fun (p, _) -> countClass p.Class wPointList)
@@ -92,7 +114,8 @@ let getMostClass wPointList =
 
 [<EntryPoint>]
 let main argv=
-    let PointList = inputPoints list.Empty
+    let savedPoints = readFromFile
+    let PointList = inputPoints savedPoints
     let k = intInput "Введите кол-во точек для определения типа:"
     let uX = floatInput "X:"
     let uY = floatInput "Y:"
